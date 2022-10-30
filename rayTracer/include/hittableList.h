@@ -30,7 +30,6 @@ public:
 private:
 	std::vector<shared_ptr<hittable>> objects;
 
-
 };
 
 

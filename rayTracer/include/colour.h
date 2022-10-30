@@ -5,11 +5,29 @@
 #include <utils.h>
 #include <sphere.h>
 
-void writeColour(std::ostream& out, colour pixelColour)
+
+inline double clamp(double x, double min, double max)
 {
-	out << static_cast<int>(255.999 * pixelColour.x()) << ' '
-		<< static_cast<int>(255.999 * pixelColour.y()) << ' '
-		<< static_cast<int>(255.999 * pixelColour.z()) << '\n';
+	if (x < min)	return min;
+	if (x > max)	return max;
+	return x;
+}
+
+void writeColour(std::ostream& out, colour pixelColour, int samplesPerPixel)
+{
+
+	auto R = pixelColour.x();
+	auto G = pixelColour.y();
+	auto B = pixelColour.z();
+
+	auto scale = 1.0 / samplesPerPixel;
+	R *= scale;
+	G *= scale;
+	B *= scale;
+
+	out << static_cast<int>(256 * clamp(R, 0.0, 0.999)) << ' '
+		<< static_cast<int>(256 * clamp(G, 0.0, 0.999)) << ' '
+		<< static_cast<int>(256 * clamp(B, 0.0, 0.999)) << '\n';
 }
 
 colour rayColour(const ray& r, const hittable& world)

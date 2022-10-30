@@ -157,6 +157,7 @@
     <ClCompile Include="src\vec3.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="include\camera.h" />
     <ClInclude Include="include\colour.h" />
     <ClInclude Include="include\hittable.h" />
     <ClInclude Include="include\hittableList.h" />
