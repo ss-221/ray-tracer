@@ -2,7 +2,7 @@
 #define COLOUR_H
 
 #include <iostream>
-#include <utils.h>
+#include <vec3.h>
 #include <sphere.h>
 
 
@@ -21,21 +21,26 @@ void writeColour(std::ostream& out, colour pixelColour, int samplesPerPixel)
 	auto B = pixelColour.z();
 
 	auto scale = 1.0 / samplesPerPixel;
-	R *= scale;
-	G *= scale;
-	B *= scale;
+	R = sqrt(scale * R);
+	G = sqrt(scale * G);
+	B = sqrt(scale * B);
 
 	out << static_cast<int>(256 * clamp(R, 0.0, 0.999)) << ' '
 		<< static_cast<int>(256 * clamp(G, 0.0, 0.999)) << ' '
 		<< static_cast<int>(256 * clamp(B, 0.0, 0.999)) << '\n';
 }
 
-colour rayColour(const ray& r, const hittable& world)
+colour rayColour(const ray& r, const hittable& world, int depth)
 {
 	hitRecord rec;
-	if (world.hit(r, 0, infinity, rec))
+	if (depth <= 0)
 	{
-		return 0.5 * (rec.normal + colour(1, 1, 1));
+		return colour(0, 0, 0);
+	}
+	if (world.hit(r, 0.001, infinity, rec))
+	{
+		point3 target = rec.p + randomInHemisphere(rec.normal);
+		return 0.5 * rayColour(ray(rec.p, target - rec.p), world, depth - 1);
 	}
 
 	vec3 unitDir = unitVec(r.direction());

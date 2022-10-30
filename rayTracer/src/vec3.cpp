@@ -106,3 +106,36 @@ vec3 unitVec(vec3 v)
     return v / v.length();
 }
 
+vec3 random()
+{
+    return vec3(randomDouble(), randomDouble(), randomDouble());
+}
+
+vec3 random(double min, double max)
+{
+    return vec3(randomDouble(min, max), randomDouble(min, max), randomDouble(min, max));
+}
+
+vec3 randomInUnitSphere()
+{
+    while (true) {
+        auto p = random(-1, 1);
+        if (p.sqLength() >= 1) continue;
+        return p;
+    }
+}
+
+vec3 randomUnitVector()
+{
+    return unitVec(randomInUnitSphere());
+}
+
+vec3 randomInHemisphere(const vec3& normal)
+{
+    vec3 inUnitSphere = randomInUnitSphere();
+    if (dot(inUnitSphere, normal) > 0.0)
+    {
+        return inUnitSphere;
+    }
+    return -inUnitSphere;
+}

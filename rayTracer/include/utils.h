@@ -30,7 +30,4 @@ inline double randomDouble(double min, double max) {
     return min + (max - min) * randomDouble();
 }
 
-#include <ray.h>
-#include <vec3.h>
-
 #endif // !UTILS_H

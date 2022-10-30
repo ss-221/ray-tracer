@@ -3,6 +3,7 @@
 
 #include <math.h>
 #include <ostream>
+#include <utils.h>
 
 constexpr int DIMENSIONS = 3;
 
@@ -38,6 +39,12 @@ public:
 private:
 	double c[DIMENSIONS];
 };
+
+static vec3 random();
+static vec3 random(double min, double max);
+vec3 randomInUnitSphere();
+vec3 randomUnitVector();
+vec3 randomInHemisphere(const vec3& normal);
 
 using colour = vec3;
 using point3 = vec3;
