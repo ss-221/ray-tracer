@@ -1,9 +1,9 @@
 #ifndef COLOUR_H
 #define COLOUR_H
 
-#include <vec3.h>
-#include <ray.h>
 #include <iostream>
+#include <utils.h>
+#include <sphere.h>
 
 void writeColour(std::ostream& out, colour pixelColour)
 {
@@ -12,17 +12,16 @@ void writeColour(std::ostream& out, colour pixelColour)
 		<< static_cast<int>(255.999 * pixelColour.z()) << '\n';
 }
 
-colour rayColour(const ray& r)
+colour rayColour(const ray& r, const hittable& world)
 {
-	auto t = isRayHittingSphere(point3(0, 0, -1), 0.5, r);
-	if (t > 0.0)
+	hitRecord rec;
+	if (world.hit(r, 0, infinity, rec))
 	{
-		vec3 normal = unitVec(r.at(t) - vec3(0, 0, -1));
-		normal = (normal * 0.5);
-		return 0.5 * colour(normal.x() + 1, normal.y() + 1, normal.z() + 1);
+		return 0.5 * (rec.normal + colour(1, 1, 1));
 	}
+
 	vec3 unitDir = unitVec(r.direction());
-	t = 0.5 * (unitDir.y() + 1.0);
+	auto t = 0.5 * (unitDir.y() + 1.0);
 	return (1.0 - t) * colour(1.0, 1.0, 1.0) + t * colour(0.5, 0.7, 1.0);
 }
 
