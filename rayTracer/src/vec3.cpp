@@ -54,11 +54,6 @@ bool vec3::nearZero() const
     return ((fabs(c[0]) < s) && (fabs(c[1]) < s) && (fabs(c[2]) < s));
 }
 
-vec3 reflect(const vec3& v, const vec3& n)
-{
-    return v - 2 * dot(v, n) * n;
-}
-
 //Utility functions
 
 std::ostream& operator<<(std::ostream& out, const vec3& v)
@@ -149,4 +144,18 @@ vec3 randomInHemisphere(const vec3& normal)
         return inUnitSphere;
     }
     return -inUnitSphere;
+}
+
+vec3 reflect(const vec3& v, const vec3& n)
+{
+    return v - 2 * dot(v, n) * n;
+}
+
+vec3 refract(const vec3& uv, const vec3& n, double etaiOverEtat)
+{
+    auto cosTheta = fmin(dot(-uv, n), 1.0);
+    vec3 rOutPerp = etaiOverEtat * (uv + cosTheta * n);
+    vec3 rOutParallel = -sqrt(fabs(1.0 - rOutPerp.sqLength())) * n;
+
+    return rOutPerp + rOutParallel;
 }

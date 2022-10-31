@@ -23,11 +23,24 @@ private:
 class metal : public material
 {
 public:
-	metal(const colour& c) : albedo(c) {}
+	metal(const colour& c, double f) : albedo(c), fuzz(f) {}
 
 	virtual bool scatter(const ray& rIn, const hitRecord& rec, colour& attenuation, ray& scattered) const override;
 
 private:
 	colour albedo;
+	double fuzz;
+};
+
+class dielectric : public material
+{
+public:
+	dielectric(double indexOfRefraction) : ir(indexOfRefraction) {}
+
+	virtual bool scatter(const ray& rIn, const hitRecord& rec, colour& attenuation, ray& scattered) const override;
+
+private:
+	double ir;
+	static double reflectance(double cosine, double refIdx);
 };
 #endif // !MATERIAL_H

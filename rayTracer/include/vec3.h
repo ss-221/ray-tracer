@@ -37,6 +37,7 @@ public:
 	friend vec3 cross(const vec3& v1, const vec3& v2);
 	friend vec3 unitVec(vec3 v);
 	friend vec3 reflect(const vec3& v, const vec3& n);
+	friend vec3 refract(const vec3& uv, const vec3& n, double etaiOverEtat);
 
 private:
 	double c[DIMENSIONS];
