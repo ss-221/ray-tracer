@@ -6,15 +6,21 @@
 class camera
 {
 public:
-	camera()
+	camera(point3 lookFrom, point3 lookAt, vec3 viewUp, double fov, double aspectRatio)
 	{
-		origin = point3(0, 0, 0);
-		auto viewPortHeight = 2.0;
+		auto theta = degreesToRadians(fov);
+		auto h = tan(theta / 2);
+		auto viewPortHeight = 2.0 * h;
 		auto viewPortWidth = viewPortHeight * aspectRatio;
-		auto focalLen = 1.0;
-		vertical = vec3(0.0, viewPortHeight, 0.0);
-		horizontal = vec3(viewPortWidth, 0.0, 0.0);
-		lowerLeftCorner = origin - horizontal / 2 - vertical / 2 - vec3(0, 0, focalLen);
+
+		auto w = unitVec(lookFrom - lookAt);
+		auto u = unitVec(cross(viewUp, w));
+		auto v = cross(w, u);
+
+		origin = lookFrom;		
+		horizontal = viewPortWidth * u;
+		vertical = viewPortHeight * v;
+		lowerLeftCorner = origin - horizontal / 2 - vertical / 2 - w;
 	}
 
 	ray getRay(double u, double v)	const
