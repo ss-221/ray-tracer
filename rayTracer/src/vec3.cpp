@@ -48,6 +48,17 @@ double vec3::sqLength() const
     return c[0] * c[0] + c[1] * c[1] + c[2] * c[2];
 }
 
+bool vec3::nearZero() const
+{
+    const auto s = 1e-8;
+    return ((fabs(c[0]) < s) && (fabs(c[1]) < s) && (fabs(c[2]) < s));
+}
+
+vec3 reflect(const vec3& v, const vec3& n)
+{
+    return v - 2 * dot(v, n) * n;
+}
+
 //Utility functions
 
 std::ostream& operator<<(std::ostream& out, const vec3& v)

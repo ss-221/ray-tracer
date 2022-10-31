@@ -1,14 +1,16 @@
 #ifndef HITTABLE_H
 #define HITTABLE_H
 
-#include "ray.h"
+#include <ray.h>
+
+class material;
 
 struct hitRecord
 {
 	point3 p;
 	vec3 normal;
 	double t;
-
+	shared_ptr<material> matPtr;
 	bool frontFace;
 
 	inline void setFaceNormal(const ray& r, const vec3& outwardNormal)

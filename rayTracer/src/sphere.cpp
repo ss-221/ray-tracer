@@ -29,6 +29,7 @@ bool sphere::hit(const ray& r, double t_min, double t_max, hitRecord& hitRec) co
 	hitRec.p = r.at(hitRec.t);
 	vec3 outwardNormal = (hitRec.p - center) / radius;
 	hitRec.setFaceNormal(r, outwardNormal);
+	hitRec.matPtr = matPtr;
 
 	return true;
 }

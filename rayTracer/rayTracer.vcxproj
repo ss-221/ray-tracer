@@ -151,6 +151,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="material.cpp" />
+    <ClCompile Include="src\colour.cpp" />
     <ClCompile Include="src\hittableList.cpp" />
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\sphere.cpp" />
@@ -165,6 +167,7 @@
     <ClInclude Include="include\sphere.h" />
     <ClInclude Include="include\utils.h" />
     <ClInclude Include="include\vec3.h" />
+    <ClInclude Include="include\material.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

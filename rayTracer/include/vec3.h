@@ -24,6 +24,7 @@ public:
 	vec3& operator/=(const double t);
 	double length() const;
 	double sqLength() const;
+	bool nearZero() const;
 
 	friend std::ostream& operator<<(std::ostream& out, const vec3& v);
 	friend vec3 operator+(const vec3& v1, const vec3& v2);
@@ -35,6 +36,7 @@ public:
 	friend double dot(const vec3& v1, const vec3& v2);
 	friend vec3 cross(const vec3& v1, const vec3& v2);
 	friend vec3 unitVec(vec3 v);
+	friend vec3 reflect(const vec3& v, const vec3& n);
 
 private:
 	double c[DIMENSIONS];
