@@ -112,12 +112,12 @@ vec3 unitVec(vec3 v)
     return v / v.length();
 }
 
-vec3 random()
+vec3 vec3::random()
 {
     return vec3(randomDouble(), randomDouble(), randomDouble());
 }
 
-vec3 random(double min, double max)
+vec3 vec3::random(double min, double max)
 {
     return vec3(randomDouble(min, max), randomDouble(min, max), randomDouble(min, max));
 }
@@ -125,7 +125,7 @@ vec3 random(double min, double max)
 vec3 randomInUnitSphere()
 {
     while (true) {
-        auto p = random(-1, 1);
+        auto p = vec3::random(-1, 1);
         if (p.sqLength() >= 1) continue;
         return p;
     }
@@ -158,4 +158,14 @@ vec3 refract(const vec3& uv, const vec3& n, double etaiOverEtat)
     vec3 rOutParallel = -sqrt(fabs(1.0 - rOutPerp.sqLength())) * n;
 
     return rOutPerp + rOutParallel;
+}
+
+vec3 randomInUnitDisk()
+{
+    while (true)
+    {
+        auto p = vec3(randomDouble(-1, 1), randomDouble(-1, 1), 0);
+        if (p.sqLength() >= 1)   continue;
+        return p;
+    }
 }

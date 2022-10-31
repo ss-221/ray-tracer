@@ -26,6 +26,9 @@ public:
 	double sqLength() const;
 	bool nearZero() const;
 
+	static vec3 random();
+	static vec3 random(double min, double max);
+
 	friend std::ostream& operator<<(std::ostream& out, const vec3& v);
 	friend vec3 operator+(const vec3& v1, const vec3& v2);
 	friend vec3 operator-(const vec3& v1, const vec3& v2);
@@ -43,11 +46,11 @@ private:
 	double c[DIMENSIONS];
 };
 
-static vec3 random();
-static vec3 random(double min, double max);
+
 vec3 randomInUnitSphere();
 vec3 randomUnitVector();
 vec3 randomInHemisphere(const vec3& normal);
+vec3 randomInUnitDisk();
 
 using colour = vec3;
 using point3 = vec3;
