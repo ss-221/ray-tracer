@@ -7,11 +7,6 @@
 #include <memory>
 #include <random>
 
-
-#define ERRORMSG(...) cppLogger::Logger::ERRORMSG(__VA_ARGS__)
-#define INFOMSG(...)  cppLogger::Logger::INFOMSG(__VA_ARGS__)
-#define DEBUGMSG(...) cppLogger::Logger::DEBUGMSG(__VA_ARGS__)
-
 using std::shared_ptr;
 using std::make_shared;
 using std::sqrt;
