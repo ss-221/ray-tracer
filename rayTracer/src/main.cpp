@@ -57,6 +57,7 @@ int main(int argc, char** argv)
 {
 	cppLogger::Logger::LogOpen("logs.txt");
 
+	//Image Details
 	const auto aspectRatio = 16.0 / 9.0;
 	const auto imageWidth = 1920;
 	const auto imageHeight = static_cast<int> (imageWidth / aspectRatio);
@@ -64,8 +65,10 @@ int main(int argc, char** argv)
 	const int maxDepth = 50;
 	INFOMSG("Resolution: %d x %d", imageWidth, imageHeight);
 
+	//Setting the scene
 	auto world = randomScene();
 
+	//Camera Details
 	point3 lookFrom(13, 2, 3);
 	point3 lookAt(0, 0, 0);
 	vec3 viewUp(0, 1, 0);
@@ -74,10 +77,12 @@ int main(int argc, char** argv)
 
 	camera cam(lookFrom, lookAt, viewUp, 20, aspectRatio, aperture, dist_to_focus);
 
+	//Rendering
 	std::ofstream imageFile;
 	imageFile.open("image.ppm", std::ios::binary);
 
 	imageFile << "P3\n" << imageWidth << ' ' << imageHeight << "\n255\n";
+
 	for (int j = imageHeight - 1; j >= 0; --j) {
 		for (int i = 0; i < imageWidth; ++i) {
 
