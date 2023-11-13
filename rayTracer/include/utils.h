@@ -6,6 +6,7 @@
 #include <limits>
 #include <memory>
 #include <random>
+#include <fstream>
 
 using std::shared_ptr;
 using std::make_shared;

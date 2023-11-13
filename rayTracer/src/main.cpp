@@ -60,7 +60,7 @@ int main(int argc, char** argv)
 	const auto aspectRatio = 16.0 / 9.0;
 	const auto imageWidth = 1920;
 	const auto imageHeight = static_cast<int> (imageWidth / aspectRatio);
-	const int samplesPerPixel = 500;
+	const int samplesPerPixel = 50;
 	const int maxDepth = 50;
 	INFOMSG("Resolution: %d x %d", imageWidth, imageHeight);
 
@@ -74,7 +74,10 @@ int main(int argc, char** argv)
 
 	camera cam(lookFrom, lookAt, viewUp, 20, aspectRatio, aperture, dist_to_focus);
 
-	std::cout << "P3\n" << imageWidth << ' ' << imageHeight << "\n255\n";
+	std::ofstream imageFile;
+	imageFile.open("image.ppm", std::ios::binary);
+
+	imageFile << "P3\n" << imageWidth << ' ' << imageHeight << "\n255\n";
 	for (int j = imageHeight - 1; j >= 0; --j) {
 		for (int i = 0; i < imageWidth; ++i) {
 
@@ -87,9 +90,11 @@ int main(int argc, char** argv)
 				ray r = cam.getRay(u, v);
 				pixelColour += rayColour(r, world, maxDepth);
 			}
-			writeColour(std::cout, pixelColour, samplesPerPixel);
+			writeColour(imageFile, pixelColour, samplesPerPixel);
 		}
 	}
+
+	imageFile.close();
 	cppLogger::Logger::LogClose();
 	return 0;
 }
