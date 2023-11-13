@@ -53,6 +53,26 @@ hittableList randomScene()
 	return world;
 }
 
+
+void RenderImage(const int& imageHeight, const int& imageWidth, const int& samplesPerPixel, const int& maxDepth, const camera& cam, const hittableList& world, std::ofstream& imageFile)
+{
+	for (int j = imageHeight - 1; j >= 0; --j) {
+		for (int i = 0; i < imageWidth; ++i) {
+
+			colour pixelColour(0, 0, 0);
+
+			for (int s = 0; s < samplesPerPixel; ++s)
+			{
+				auto u = (i + randomDouble()) / (imageWidth - 1);
+				auto v = (j + randomDouble()) / (imageHeight - 1);
+				ray r = cam.getRay(u, v);
+				pixelColour += rayColour(r, world, maxDepth);
+			}
+			writeColour(imageFile, pixelColour, samplesPerPixel);
+		}
+	}
+}
+
 int main(int argc, char** argv)
 {
 	cppLogger::Logger::LogOpen("logs.txt");
@@ -83,21 +103,7 @@ int main(int argc, char** argv)
 
 	imageFile << "P3\n" << imageWidth << ' ' << imageHeight << "\n255\n";
 
-	for (int j = imageHeight - 1; j >= 0; --j) {
-		for (int i = 0; i < imageWidth; ++i) {
-
-			colour pixelColour(0, 0, 0);
-
-			for (int s = 0; s < samplesPerPixel; ++s)
-			{
-				auto u = (i + randomDouble()) / (imageWidth - 1);
-				auto v = (j + randomDouble()) / (imageHeight - 1);
-				ray r = cam.getRay(u, v);
-				pixelColour += rayColour(r, world, maxDepth);
-			}
-			writeColour(imageFile, pixelColour, samplesPerPixel);
-		}
-	}
+	RenderImage(imageHeight, imageWidth, samplesPerPixel, maxDepth, cam, world, imageFile);
 
 	imageFile.close();
 	cppLogger::Logger::LogClose();
