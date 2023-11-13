@@ -7,6 +7,7 @@
 #include <memory>
 #include <random>
 #include <fstream>
+#include <thread>
 
 using std::shared_ptr;
 using std::make_shared;

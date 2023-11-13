@@ -53,10 +53,17 @@ hittableList randomScene()
 	return world;
 }
 
-
-void RenderImage(const int& imageHeight, const int& imageWidth, const int& samplesPerPixel, const int& maxDepth, const camera& cam, const hittableList& world, std::ofstream& imageFile)
+struct RowGroupData
 {
-	for (int j = imageHeight - 1; j >= 0; --j) {
+	int startRow, endRow;
+	std::vector<unsigned long long> pixelIndex;
+	std::vector<colour> pixelColour;
+};
+
+void RenderImage(RowGroupData threadRowGroup, std::vector<RowGroupData>& rowGroups, std::mutex& rowGroupsMutex, std::atomic<int>& finishedThreadsCount, std::condition_variable& isRenderingDone, const int& imageHeight, const int& imageWidth, const int& samplesPerPixel, const int& maxDepth, const camera& cam, const hittableList& world)
+{
+	INFOMSG("Thread starting.");
+	for (int j = threadRowGroup.startRow; j < threadRowGroup.endRow; ++j) {
 		for (int i = 0; i < imageWidth; ++i) {
 
 			colour pixelColour(0, 0, 0);
@@ -68,8 +75,18 @@ void RenderImage(const int& imageHeight, const int& imageWidth, const int& sampl
 				ray r = cam.getRay(u, v);
 				pixelColour += rayColour(r, world, maxDepth);
 			}
-			writeColour(imageFile, pixelColour, samplesPerPixel);
+			unsigned long long index = j * imageWidth + (imageWidth - i);
+			threadRowGroup.pixelIndex.push_back(index);
+			threadRowGroup.pixelColour.push_back(pixelColour);
 		}
+	}
+
+	{
+		std::scoped_lock<std::mutex> lock(rowGroupsMutex);
+		rowGroups.push_back(threadRowGroup);
+		finishedThreadsCount += 1;
+		INFOMSG("Thread has finished.");
+		isRenderingDone.notify_one();
 	}
 }
 
@@ -79,14 +96,16 @@ int main(int argc, char** argv)
 
 	//Image Details
 	const auto aspectRatio = 16.0 / 9.0;
-	const auto imageWidth = 1920;
+	const auto imageWidth = 1280;
 	const auto imageHeight = static_cast<int> (imageWidth / aspectRatio);
-	const int samplesPerPixel = 50;
-	const int maxDepth = 50;
+	const int samplesPerPixel = 30;
+	const int maxDepth = 10;
 	INFOMSG("Resolution: %d x %d", imageWidth, imageHeight);
+	INFOMSG("Samples per pixel: %d", samplesPerPixel);
 
 	//Setting the scene
 	auto world = randomScene();
+	INFOMSG("Scene set.");
 
 	//Camera Details
 	point3 lookFrom(13, 2, 3);
@@ -96,14 +115,84 @@ int main(int argc, char** argv)
 	auto aperture = 0.1;
 
 	camera cam(lookFrom, lookAt, viewUp, 20, aspectRatio, aperture, dist_to_focus);
+	INFOMSG("Camera set.");
 
 	//Rendering
+	int threadCount = std::thread::hardware_concurrency() / 2;
+	INFOMSG("Total threads: %d", threadCount);
+	int rowsPerThread = imageHeight / threadCount;
+	int rowsLeftOver = imageHeight % threadCount;
+
+	std::vector<std::thread> threads;
+	std::vector<RowGroupData> rowGroups;
+	std::mutex rowGroupsMutex;
+	std::atomic<int> finishedThreadsCount = { 0 };
+	std::condition_variable isRenderingDone;
+
+	for (int threadID = 0; threadID < threadCount; ++threadID)
+	{
+		RowGroupData threadRowGroup;
+
+		threadRowGroup.startRow = threadID * rowsPerThread;
+		threadRowGroup.endRow = threadRowGroup.startRow + rowsPerThread;
+
+		if (threadID == threadCount - 1)
+		{
+			threadRowGroup.endRow = threadRowGroup.startRow + rowsPerThread + rowsLeftOver;
+		}
+
+		std::thread t([threadRowGroup, &rowGroups, &rowGroupsMutex, &finishedThreadsCount, &isRenderingDone, &imageHeight, &imageWidth, &samplesPerPixel, &maxDepth, &cam, &world]()
+			{
+				RenderImage(threadRowGroup, rowGroups, rowGroupsMutex, finishedThreadsCount, isRenderingDone, imageHeight, imageWidth, samplesPerPixel, maxDepth, cam, world);
+			}
+		);
+		threads.push_back(std::move(t));
+	}
+
+	{
+		std::unique_lock<std::mutex> lock(rowGroupsMutex);
+		isRenderingDone.wait(lock, [&finishedThreadsCount, &threadCount]
+			{
+				return finishedThreadsCount == threadCount;
+			}
+		);
+	}
+
+	for (auto& t : threads)
+	{
+		t.join();
+	}
+
+	INFOMSG("All the threads have joined.");
+
+	int totalPixelCount = imageHeight * imageWidth;
+	std::vector<colour> imageData(totalPixelCount);
+	
+	for (auto& threadRowGroup : rowGroups)
+	{
+		for (int idx = 0; idx < threadRowGroup.pixelIndex.size(); ++idx)
+		{
+			imageData[threadRowGroup.pixelIndex[idx]] = threadRowGroup.pixelColour[idx];
+		}
+	}
+
 	std::ofstream imageFile;
 	imageFile.open("image.ppm", std::ios::binary);
 
+	if (!imageFile.is_open())
+	{
+		ERRORMSG("Failed to load the file, exiting.");
+		return 1;
+	}
+
 	imageFile << "P3\n" << imageWidth << ' ' << imageHeight << "\n255\n";
 
-	RenderImage(imageHeight, imageWidth, samplesPerPixel, maxDepth, cam, world, imageFile);
+	for (int idx = imageData.size() - 1; idx >= 0; --idx)
+	{
+		writeColour(imageFile, imageData[idx], samplesPerPixel);
+	}
+
+	INFOMSG("Image created successfully.");
 
 	imageFile.close();
 	cppLogger::Logger::LogClose();
