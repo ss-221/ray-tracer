@@ -7,7 +7,7 @@
 
 double clamp(double x, double min, double max);
 
-void writeColour(std::ostream& out, colour pixelColour, int samplesPerPixel);
+void writeColour(std::ostream& out, const colour& pixelColour, const int& samplesPerPixel);
 
 colour rayColour(const ray& r, const hittable& world, int depth);
 

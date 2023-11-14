@@ -10,7 +10,7 @@ double clamp(double x, double min, double max)
 	return x;
 }
 
-void writeColour(std::ostream& out, colour pixelColour, int samplesPerPixel)
+void writeColour(std::ostream& out, const colour& pixelColour, const int& samplesPerPixel)
 {
 
 	auto R = pixelColour.x();

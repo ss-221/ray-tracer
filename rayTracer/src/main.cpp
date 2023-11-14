@@ -56,13 +56,15 @@ hittableList randomScene()
 struct RowGroupData
 {
 	int startRow, endRow;
-	std::vector<unsigned long long> pixelIndex;
-	std::vector<colour> pixelColour;
 };
 
-void RenderImage(RowGroupData threadRowGroup, std::vector<RowGroupData>& rowGroups, std::mutex& rowGroupsMutex, std::atomic<int>& finishedThreadsCount, std::condition_variable& isRenderingDone, const int& imageHeight, const int& imageWidth, const int& samplesPerPixel, const int& maxDepth, const camera& cam, const hittableList& world)
+void RenderImage(RowGroupData threadRowGroup, std::vector<colour>& imageData, std::mutex& imageDataMutex, std::atomic<int>& finishedThreadsCount, std::condition_variable& isRenderingDone, const int& imageHeight, const int& imageWidth, const int& samplesPerPixel, const int& maxDepth, const camera& cam, const hittableList& world)
 {
 	INFOMSG("Thread starting.");
+
+	std::vector<unsigned long long> pixelIndices;
+	std::vector<colour> pixelColours;
+
 	for (int j = threadRowGroup.startRow; j < threadRowGroup.endRow; ++j) {
 		for (int i = 0; i < imageWidth; ++i) {
 
@@ -76,14 +78,18 @@ void RenderImage(RowGroupData threadRowGroup, std::vector<RowGroupData>& rowGrou
 				pixelColour += rayColour(r, world, maxDepth);
 			}
 			unsigned long long index = j * imageWidth + (imageWidth - i);
-			threadRowGroup.pixelIndex.push_back(index);
-			threadRowGroup.pixelColour.push_back(pixelColour);
+			pixelIndices.push_back(index);
+			pixelColours.push_back(pixelColour);
 		}
 	}
 
 	{
-		std::scoped_lock<std::mutex> lock(rowGroupsMutex);
-		rowGroups.push_back(threadRowGroup);
+		std::scoped_lock<std::mutex> lock(imageDataMutex);
+		for (int idx = 0; idx < pixelIndices.size(); ++idx)
+		{
+			imageData[pixelIndices[idx]] = pixelColours[idx];
+		}
+
 		finishedThreadsCount += 1;
 		INFOMSG("Thread has finished.");
 		isRenderingDone.notify_one();
@@ -119,13 +125,15 @@ int main(int argc, char** argv)
 
 	//Rendering
 	int threadCount = std::thread::hardware_concurrency() / 2;
-	INFOMSG("Total threads: %d", threadCount);
+	INFOMSG("Threads being used: %d", threadCount);
 	int rowsPerThread = imageHeight / threadCount;
 	int rowsLeftOver = imageHeight % threadCount;
 
+	int totalPixelCount = imageHeight * imageWidth;
+
 	std::vector<std::thread> threads;
-	std::vector<RowGroupData> rowGroups;
-	std::mutex rowGroupsMutex;
+	std::vector<colour> imageData(totalPixelCount);
+	std::mutex imageDataMutex;
 	std::atomic<int> finishedThreadsCount = { 0 };
 	std::condition_variable isRenderingDone;
 
@@ -141,16 +149,16 @@ int main(int argc, char** argv)
 			threadRowGroup.endRow = threadRowGroup.startRow + rowsPerThread + rowsLeftOver;
 		}
 
-		std::thread t([threadRowGroup, &rowGroups, &rowGroupsMutex, &finishedThreadsCount, &isRenderingDone, &imageHeight, &imageWidth, &samplesPerPixel, &maxDepth, &cam, &world]()
+		std::thread t([threadRowGroup, &imageData, &imageDataMutex, &finishedThreadsCount, &isRenderingDone, &imageHeight, &imageWidth, &samplesPerPixel, &maxDepth, &cam, &world]()
 			{
-				RenderImage(threadRowGroup, rowGroups, rowGroupsMutex, finishedThreadsCount, isRenderingDone, imageHeight, imageWidth, samplesPerPixel, maxDepth, cam, world);
+				RenderImage(threadRowGroup, imageData, imageDataMutex, finishedThreadsCount, isRenderingDone, imageHeight, imageWidth, samplesPerPixel, maxDepth, cam, world);
 			}
 		);
 		threads.push_back(std::move(t));
 	}
 
 	{
-		std::unique_lock<std::mutex> lock(rowGroupsMutex);
+		std::unique_lock<std::mutex> lock(imageDataMutex);
 		isRenderingDone.wait(lock, [&finishedThreadsCount, &threadCount]
 			{
 				return finishedThreadsCount == threadCount;
@@ -164,17 +172,6 @@ int main(int argc, char** argv)
 	}
 
 	INFOMSG("All the threads have joined.");
-
-	int totalPixelCount = imageHeight * imageWidth;
-	std::vector<colour> imageData(totalPixelCount);
-	
-	for (auto& threadRowGroup : rowGroups)
-	{
-		for (int idx = 0; idx < threadRowGroup.pixelIndex.size(); ++idx)
-		{
-			imageData[threadRowGroup.pixelIndex[idx]] = threadRowGroup.pixelColour[idx];
-		}
-	}
 
 	std::ofstream imageFile;
 	imageFile.open("image.ppm", std::ios::binary);
