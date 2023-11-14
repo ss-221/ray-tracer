@@ -108,6 +108,7 @@ int main(int argc, char** argv)
 	const int maxDepth = 10;
 	INFOMSG("Resolution: %d x %d", imageWidth, imageHeight);
 	INFOMSG("Samples per pixel: %d", samplesPerPixel);
+	INFOMSG("Max. depth: %d", maxDepth);
 
 	//Setting the scene
 	auto world = randomScene();
@@ -173,6 +174,7 @@ int main(int argc, char** argv)
 
 	INFOMSG("All the threads have joined.");
 
+	//Writing to the file
 	std::ofstream imageFile;
 	imageFile.open("image.ppm", std::ios::binary);
 
